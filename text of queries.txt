@@ -1,0 +1,135 @@
+/*  quistion 1 */
+/*get artists who have the most Alternative & Punk music songs*/
+
+SELECT DISTINCT a.ArtistId , a.Name ,g.Name,count(a.Name) as total_songs
+FROM Track t
+JOIN Album al
+on t.AlbumId = al.AlbumId
+JOIN Artist a
+USING (ArtistId)
+JOIN Genre g
+USING( GenreId)
+WHERE g.Name ='Alternative & Punk'
+GROUP by 1,2,3
+ORDER by 4 DESC 
+
+/*  question 2 */
+/* what the most popular music from 2009 to 2013*/
+
+WITH popular_music as (
+SELECT count(g.Name) as genre_count, STRFTIME('%Y', i.InvoiceDate)  year, g.name 
+FROM InvoiceLine il
+JOIN Invoice i
+USING(InvoiceId)
+JOIN Track t
+USING(TrackId)
+JOIN Genre g
+USING (GenreId)
+GROUP by 2,3)
+
+SELECT  year,Name,max(genre_count)as max_music
+FROM popular_music
+GROUP by 1
+
+
+
+/*  question 3 */
+/* what are countries have the best averages of invoices */ 
+
+WITH t1 as (
+SELECT i.BillingCountry ,avg(Total) avg_total
+FROM Invoice i
+GROUP by 1 
+)
+SELECT DISTINCT i.BillingCountry , avg(i.Total) avg_total
+FROM Invoice i
+JOIN t1
+on i.BillingCountry = t1.BillingCountry
+WHERE t1.avg_total >= ( SELECT avg(Total)
+                        FROM Invoice )
+GROUP by 1
+ORDER by 2 DESC ;
+
+
+/* question 4*/
+/* get the most popular music around the world*/
+
+SELECT  DISTINCT g.Name ,count(c.Country) total_purchases
+FROM Customer c
+JOIN Invoice i
+USING(CustomerId)
+JOIN InvoiceLine il
+USING(InvoiceId)
+JOIN Track t
+USING (TrackId) 
+JOIN genre g
+USING (GenreId)
+GROUP by 1 
+ORDER by 2 DESC
+
+
+/* question 5*/
+/* what media is earning most*/
+
+SELECT mt.Name , SUM(il.Quantity * il.UnitPrice) total_spend
+from MediaType mt
+JOIN Track t
+USING(MediaTypeId)
+JOIN InvoiceLine il
+USING (TrackId)
+GROUP by mt.Name
+ORDER by total_spend DESC ; 
+
+
+/*question 6*/
+/*what is the names of most 10 customers who listen to Rock music*/
+
+SELECT c.FirstName , c.LastName, count(g.Name) songs
+from Customer c
+JOIN Invoice i
+USING (CustomerId)
+JOIN InvoiceLine il
+USING (InvoiceId)
+JOIN Track t
+USING (TrackId)
+JOIN Genre g
+USING (GenreId)
+WHERE g.Name = 'Rock'
+GROUP by c.FirstName,c.LastName
+ORDER by songs DESC
+LIMIT 10
+
+
+/* question 7 */
+/* get the most ten countries had ordered Quantities */ 
+
+SELECT i.BillingCountry ,sum(il.Quantity) sum_quantity
+FROM Invoice i
+JOIN InvoiceLine il 
+USING (InvoiceId)
+GROUP by  BillingCountry
+ORDER by sum_quantity DESC
+LIMIT 10
+
+
+/* question 8 */
+/* get the first ten countries that have the most invoices */
+
+SELECT DISTINCT BillingCountry , count(invoiceId) totlaI_nvoice
+FROM Invoice 
+GROUP by 1 
+ORDER by 2 DESC
+LIMIT 10
+
+/* question 9 */
+/* get the first ten cities have the best customers who pays more */
+
+SELECT DISTINCT BillingCity , sum(Total) sum_totlaI
+FROM Invoice 
+GROUP by 1 
+ORDER by 2 DESC
+LIMIT 10
+
+
+
+
